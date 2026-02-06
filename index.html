@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест - вопросы</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .question {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .options {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            padding: 8px;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+        label:hover {
+            background-color: #f0f0f0;
+        }
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            display: none;
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .correct-answer {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .user-answer {
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .correct {
+            background-color: #d4edda;
+        }
+        .incorrect {
+            background-color: #f8d7da;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест по социальному проектированию</h1>
+    
+    <form id="quizForm">
+        <!-- Вопросы будут добавлены здесь -->
+    </form>
+    
+    <button onclick="submitQuiz()">Завершить тест</button>
+    <button onclick="window.location.href='index.html'">На главную</button>
+    
+    <div id="result" class="result">
+        <h2>Результаты теста</h2>
+        <p class="score">Ваш результат: <span id="score">0</span> из 12</p>
+        <p id="percentage"></p>
+        <p id="message"></p>
+        <button onclick="resetQuiz()">Пройти тест снова</button>
+    </div>
+
+    <script>
+        // Данные теста
+        const quizData = [
+            {
+                question: "Что из перечисленного лучше всего отражает понятие социальной проблемы в проекте?",
+                options: [
+                    "Тема, которая кажется важной команде проекта",
+                    "Неудовлетворительное состояние конкретной целевой группы, которое возможно изменить к лучшему",
+                    "Любая острая социальная тема, о которой пишут СМИ",
+                    "Любое нарушение закона на территории проекта"
+                ],
+                correct: 1
+            },
+            {
+                question: "Какое утверждение о связи проблемы и целевой группы верно?",
+                options: [
+                    "Проблема может быть сформулирована без указания целевой группы",
+                    "Целевая группа определяется после формулирования проблемы",
+                    "Проблема и целевая группа неразрывно связаны и описываются вместе",
+                    "Целевая группа --- это все жители региона, поэтому можно не уточнять"
+                ],
+                correct: 2
+            },
+            {
+                question: "Какой из вариантов --- пример некорректно сформулированной проблемы для заявки НКО?",
+                options: [
+                    "У нашей организации нет средств на покупку оборудования для тренингов",
+                    "Подростки посёлка не знают, как безопасно вести себя в интернете",
+                    "Пожилые жители села испытывают дефицит общения",
+                    "Родители детей с ОВЗ не владеют информацией о доступных услугах сопровождения"
+                ],
+                correct: 0
+            },
+            {
+                question: "Какой вариант формулировки ближе всего к правильной структуре: «целевая группа -- что не устраивает -- как должно быть»?",
+                options: [
+                    "В районе нет приюта для животных, его нужно открыть",
+                    "Пожилые люди нашего района чувствуют себя одиноко и не знают о доступных формах общения, им нужно обеспечить регулярные возможности для общения с ровесниками",
+                    "В нашем районе нужно развивать добровольчество среди молодёжи",
+                    "Не хватает мероприятий по экологии, нужно провести субботник"
+                ],
+                correct: 1
+            },
+            {
+                question: "Зачем НКО изучать целевую группу и её проблему, если сотрудники «и так давно с ними работают»?",
+                options: [
+                    "Внешние требования грантодателя, реальной пользы нет",
+                    "Чтобы уточнить актуальность проблемы, её масштаб и причины, а также избежать искажений личного восприятия",
+                    "Чтобы увеличить количество страниц в заявке",
+                    "Чтобы оправдать необходимость финансирования"
+                ],
+                correct: 1
+            },
+            {
+                question: "Как НКО стоит действовать, если в ходе исследования выяснилось, что первоначальная гипотеза о проблеме была неверной?",
+                options: [
+                    "Игнорировать результаты и придерживаться исходной идеи проекта",
+                    "Скорректировать формулировку проблемы и, при необходимости, концепцию проекта",
+                    "Завершить проект и больше не заниматься этой темой",
+                    "Сменить целевую группу без дополнительных уточнений"
+                ],
+                correct: 1
+            },
+            {
+                question: "Какое утверждение о целевой группе верно для заявки НКО?",
+                options: [
+                    "Целевая группа --- это все жители страны",
+                    "Целевая группа должна быть конкретной, иметь общие социально-демографические характеристики и связанной с проблемой",
+                    "Целевая группа определяется только по возрасту",
+                    "Целевая группа --- это все, кто потенциально может увидеть новости проекта"
+                ],
+                correct: 1
+            },
+            {
+                question: "Какую ошибку в формулировке проблемы чаще всего делают НКО?",
+                options: [
+                    "Описывают проблему через нехватку ресурсов организации, а не через потребности людей",
+                    "Уточняют целевую группу и её состояние",
+                    "Прописывают причины проблемы",
+                    "Сразу связывают проблему с ожидаемыми изменениями"
+                ],
+                correct: 0
+            },
+            {
+                question: "Какое высказывание лучше всего отражает принцип «одна проблема -- один проект»?",
+                options: [
+                    "В один проект можно включить любое количество несвязанных проблем",
+                    "В рамках одного проекта важно сфокусироваться на одной чётко сформулированной проблеме целевой группы",
+                    "Проект не должен иметь ограничений по числу проблем",
+                    "Проблему можно менять по ходу реализации без обоснования"
+                ],
+                correct: 1
+            },
+            {
+                question: "Проект будет эффективным только тогда, когда...",
+                options: [
+                    "На него будет выделен крупный грант.",
+                    "В нём будет задействовано много волонтёров.",
+                    "Удастся устранить именно причины проблемы, а не её следствия.",
+                    "Он получит освещение в СМИ."
+                ],
+                correct: 2
+            },
+            {
+                question: "Сколько целевых групп должно быть у одной проблемы в правильно выстроенном проекте?",
+                options: [
+                    "Одна.",
+                    "Не менее двух.",
+                    "Столько, сколько удастся охватить.",
+                    "Это не имеет значения."
+                ],
+                correct: 0
+            },
+            {
+                question: "Что подразумевается под «конкретикой» проблемы?",
+                options: [
+                    "Красивые общие формулировки.",
+                    "Понимание, сколько людей на конкретной территории сталкиваются с проблемой или испытывают потребность, почему, что им мешает.",
+                    "Мнение только руководства организации.",
+                    "Данные по стране в целом."
+                ],
+                correct: 1
+            }
+        ];
+
+        // Динамически создаем форму теста
+        const form = document.getElementById('quizForm');
+        
+        quizData.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question';
+            questionDiv.innerHTML = `
+                <h3>Вопрос ${index + 1}</h3>
+                <p>${q.question}</p>
+                <div class="options">
+                    ${q.options.map((option, i) => `
+                        <label>
+                            <input type="radio" name="q${index}" value="${i}">
+                            ${option}
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+            form.appendChild(questionDiv);
+        });
+
+        // Функция отправки теста
+        function submitQuiz() {
+            let score = 0;
+            const results = [];
+            
+            // Проверяем ответы
+            quizData.forEach((q, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                const isCorrect = selected && parseInt(selected.value) === q.correct;
+                
+                if (isCorrect) {
+                    score++;
+                }
+                
+                results.push({
+                    question: q.question,
+                    userAnswer: selected ? q.options[parseInt(selected.value)] : "Не отвечено",
+                    correctAnswer: q.options[q.correct],
+                    isCorrect: isCorrect
+                });
+            });
+            
+            // Показываем результаты
+            const resultDiv = document.getElementById('result');
+            const scoreSpan = document.getElementById('score');
+            const percentageSpan = document.getElementById('percentage');
+            const messageSpan = document.getElementById('message');
+            
+            scoreSpan.textContent = score;
+            const percentage = Math.round((score / quizData.length) * 100);
+            percentageSpan.textContent = `Процент правильных ответов: ${percentage}%`;
+            
+            // Сообщение в зависимости от результата
+            if (percentage >= 90) {
+                messageSpan.textContent = "Отличный результат! Вы отлично разбираетесь в теме!";
+            } else if (percentage >= 70) {
+                messageSpan.textContent = "Хороший результат! Есть что повторить.";
+            } else if (percentage >= 50) {
+                messageSpan.textContent = "Удовлетворительный результат. Рекомендуем изучить тему подробнее.";
+            } else {
+                messageSpan.textContent = "Попробуйте пройти тест еще раз после изучения материалов.";
+            }
+            
+            resultDiv.style.display = 'block';
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        // Функция сброса теста
+        function resetQuiz() {
+            // Сбрасываем все радиокнопки
+            const allRadios = document.querySelectorAll('input[type="radio"]');
+            allRadios.forEach(radio => {
+                radio.checked = false;
+            });
+            
+            // Скрываем результаты
+            document.getElementById('result').style.display = 'none';
+            
+            // Прокручиваем вверх
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>
